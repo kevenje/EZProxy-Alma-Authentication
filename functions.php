@@ -1,5 +1,5 @@
 <?php
-
+// This version looks to see if there is a patron block called "PROXY" set in Alma. This needs to be added to the Alma blocks
 #Check Alma API for Patron Type and Record Status
 function auth_alma($user) {
 	global $key;
@@ -26,6 +26,10 @@ function auth_alma($user) {
 	$xmlObj = simplexml_load_string($response);
 	$patron_type = $xmlObj->user_group;
 	$status = $xmlObj->status;
+	$block = '';
+	foreach ($xmlObj->user_blocks->user_block as $userblocks) { 
+	$block .= ' '.$userblocks->block_description; // list all of the user blocks in the Alma record
+	}
 	
 	//Check if Allowed Patron Type
 		if (in_array($patron_type, $allowable_patrons)) {
@@ -39,6 +43,11 @@ function auth_alma($user) {
 		} else {
   			$status_auth = "2";
 		}
+	//Check the word "Proxy" exists in the list of blocks
+		if (strpos($block, 'PROXY') !== false)
+  			$proxy_auth = "4";
+		else
+  			$proxy_auth = "0";
 	//Define Faculty Group for logs
 	global $groups;
 	$groups = "ezproxy_group=Default";
@@ -48,7 +57,7 @@ function auth_alma($user) {
 	}
 
 //Return authentication
-	$authenticate = $group_auth + $status_auth;
+	$authenticate = $group_auth + $status_auth + $proxy_auth; // Add the Proxy to the error count if it exists
 	return $authenticate;
 //End Alma API Function
 }
