@@ -5,6 +5,10 @@ require('functions.php');
 function ShowForm() {
 	$desturl = "";
 	$errors = "";
+	if (isset($_REQUEST["url"])) // If the login fails the destination URL is lost, check if it's there
+	$desturl = $_REQUEST["url"]; 
+	else // Get the destination URL from the session information saved below if it's not in the request
+	$desturl = $_SESSION["destination"];
 	if (isset($_REQUEST["url"])) {$desturl = $_REQUEST["url"]; }
     	echo '<form method="post" action="ezalma.php">';
     	echo '<input type="hidden" name="desturl" value="' . $desturl . '"/>';
@@ -35,18 +39,22 @@ if (isset($_POST['submit'])) {
 		} elseif ($result == "1") {
   			//Usergroup not allowed remote access;
   			$_SESSION['errors'] = "User Group is not allowed remote access.";
+			$_SESSION['destination'] = $desturl; //Save the destination URL if the log in fails
   			ShowForm();
 		} elseif ($result == "2") {
   			//User is expired;
   			$_SESSION['errors'] = "User is expired.";
+			$_SESSION['destination'] = $desturl; //Save the destination URL if the log in fails
   			ShowForm();
 		} elseif ($result == "3") {
 		    //Username or Password incorrect;
-		    $_SESSION['errors'] = "Username or password incorect.";
+			$_SESSION['errors'] = "Username or password incorect.";
+		        $_SESSION['destination'] = $desturl; //Save the destination URL if the log in fails
   			ShowForm();
 		} else {
 		    //All other errors;
   			$_SESSION['errors'] = "Please see the circulation desk for assistance.";
+			$_SESSION['destination'] = $desturl; //Save the destination URL if the log in fails
   			ShowForm();
 		}
 } else {
